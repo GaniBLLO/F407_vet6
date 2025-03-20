@@ -1,0 +1,10 @@
+../Core/src/SPI_W5500.c:5:6:init_spi_gpio	1
+../Core/src/SPI_W5500.c:51:6:SPI_init	1
+../Core/src/SPI_W5500.c:77:9:SPI_Tx	3
+../Core/src/SPI_W5500.c:86:6:w5500_ChipSelect	1
+../Core/src/SPI_W5500.c:89:6:w5500_ChipDwSelect	1
+../Core/src/SPI_W5500.c:93:6:w5500_SPI_Tx	1
+../Core/src/SPI_W5500.c:97:9:w5500_SPI_Rx	1
+../Core/src/SPI_W5500.c:102:6:wizchip_read_burst	2
+../Core/src/SPI_W5500.c:111:6:wizchip_write_burst	2
+../Core/src/SPI_W5500.c:119:6:w5500_init	3

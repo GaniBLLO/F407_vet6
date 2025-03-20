@@ -1,0 +1,2 @@
+../Core/src/usart_dbg.c:3:6:usart1_init	4	static
+../Core/src/usart_dbg.c:31:6:USARTx_send_data	16	static
