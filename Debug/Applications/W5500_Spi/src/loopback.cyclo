@@ -1,4 +1,0 @@
-loopback.c:8:9:loopback_tcps	14
-loopback.c:83:9:loopback_tcpc	15
-loopback.c:172:9:loopback_udps	9
-loopback.c:226:9:loopback_udpc	9

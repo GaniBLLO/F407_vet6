@@ -1,5 +1,5 @@
-/home/ganibllo/STM_/F407_vet6/CMSIS/inc/core_cm4.h:1777:22:__NVIC_ClearPendingIRQ	16	static
-/home/ganibllo/STM_/F407_vet6/CMSIS/inc/core_cm4.h:1816:22:__NVIC_SetPriority	16	static
+C:/STM_Proj/F407_vet6/CMSIS/inc/core_cm4.h:1777:22:__NVIC_ClearPendingIRQ	16	static
+C:/STM_Proj/F407_vet6/CMSIS/inc/core_cm4.h:1816:22:__NVIC_SetPriority	16	static
 ../ModbusRTU485/port/portserial.c:47:6:vMBPortSerialEnable	112	static,ignoring_inline_asm
 ../ModbusRTU485/port/portserial.c:84:6:xMBPortSerialInit	16	static
 ../ModbusRTU485/port/portserial.c:92:6:xMBPortSerialPutByte	16	static

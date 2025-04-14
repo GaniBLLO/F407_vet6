@@ -368,11 +368,23 @@ void IRQ_enable(void){
 
 void enter_lpm(void){
 	uint32_t scr = 0;
-
+	LED_13_OFF;
+	LED_14_OFF;
+	LED_15_OFF;
+	scr = SCB->SCR;
+	scr &= ~SCB_SCR_SEVONPEND_Msk;
+	scr |= SCB_SCR_SLEEPDEEP_Msk;
+	scr &= ~SCB_SCR_SLEEPONEXIT_Msk;
+	SCB->SCR = scr;
+	PWR->CR |= (PWR_CR_CWUF | PWR_CR_FPDS | PWR_CR_LPDS);
 }
 
 void exit_lpm(void){
-	;
+	SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+	PWR->CR |= (PWR_CR_CWUF | PWR_CR_CSBF);
+	system_clock_168m_25m_hse();
+	GPIO_RCC_init();
+	LED_15_ON;
 }
 /************************************************************************MAIN*/
 int main(void) {

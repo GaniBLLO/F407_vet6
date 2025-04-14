@@ -1,9 +1,0 @@
-core_cm4.h:1777:22:__NVIC_ClearPendingIRQ	2
-core_cm4.h:1816:22:__NVIC_SetPriority	2
-portserial.c:47:6:vMBPortSerialEnable	7
-portserial.c:84:6:xMBPortSerialInit	1
-portserial.c:92:6:xMBPortSerialPutByte	1
-portserial.c:107:6:xMBPortSerialGetByte	1
-portserial.c:127:13:prvvUARTTxReadyISR	1
-portserial.c:139:13:prvvUARTRxISR	1
-portserial.c:149:6:USART1_IRQHandler	2
