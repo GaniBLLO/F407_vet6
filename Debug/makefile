@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (11.3.rel1)
+# Toolchain: GNU Tools for STM32 (10.3-2021.10)
 ################################################################################
 
 -include ../makefile.init
@@ -10,6 +10,12 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include Startup/subdir.mk
+-include ModbusRTU485/tcp/subdir.mk
+-include ModbusRTU485/rtu/subdir.mk
+-include ModbusRTU485/port/subdir.mk
+-include ModbusRTU485/functions/subdir.mk
+-include ModbusRTU485/ascii/subdir.mk
+-include ModbusRTU485/subdir.mk
 -include FreeRTOS/Kernel/portable/MemMang/subdir.mk
 -include FreeRTOS/Kernel/portable/GCC/ARM_CM4F/subdir.mk
 -include FreeRTOS/Kernel/subdir.mk
@@ -17,7 +23,6 @@ RM := rm -rf
 -include CMSIS/src/subdir.mk
 -include Applications/dp83848/src/subdir.mk
 -include Applications/W5500_Spi/src/subdir.mk
--include Applications/Ethernet/subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -66,8 +71,8 @@ all: main-build
 main-build: F407_Vet.elf secondary-outputs
 
 # Tool invocations
-F407_Vet.elf F407_Vet.map: $(OBJS) $(USER_OBJS) C:\Users\User\Downloads\Telegram\ Desktop\F407_Vet\F407_Vet\Startup\STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "F407_Vet.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\Downloads\Telegram Desktop\F407_Vet\F407_Vet\Startup\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="F407_Vet.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+F407_Vet.elf F407_Vet.map: $(OBJS) $(USER_OBJS) /home/ganibllo/STM_/F407_vet6/Startup/STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "F407_Vet.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/ganibllo/STM_/F407_vet6/Startup/STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="F407_Vet.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

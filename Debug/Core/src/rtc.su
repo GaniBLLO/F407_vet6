@@ -1,0 +1,4 @@
+../Core/src/rtc.c:5:6:RTC_init	8	static
+../Core/src/rtc.c:42:6:RTC_update	48	static
+../Core/src/rtc.c:86:6:RTC_get_time	24	static
+../Core/src/rtc.c:98:6:RTC_get_date	24	static

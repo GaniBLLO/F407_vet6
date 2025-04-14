@@ -33,6 +33,8 @@
 ../FreeRTOS/Kernel/tasks.c:3306:12:xTaskCheckForTimeOut	40	static,ignoring_inline_asm
 ../FreeRTOS/Kernel/tasks.c:3371:6:vTaskMissedYield	4	static
 ../FreeRTOS/Kernel/tasks.c:3427:8:prvIdleTask	16	static,ignoring_inline_asm
+../FreeRTOS/Kernel/tasks.c:3597:10:vTaskSetThreadLocalStoragePointer	32	static,ignoring_inline_asm
+../FreeRTOS/Kernel/tasks.c:3617:12:pvTaskGetThreadLocalStoragePointer	24	static
 ../FreeRTOS/Kernel/tasks.c:3657:13:prvInitialiseTaskLists	16	static
 ../FreeRTOS/Kernel/tasks.c:3689:13:prvCheckTasksWaitingTermination	16	static
 ../FreeRTOS/Kernel/tasks.c:3946:17:prvDeleteTCB	16	static

@@ -1,0 +1,5 @@
+../ModbusRTU485/port/porttimer.c:53:6:xMBPortTimersInit	16	static
+../ModbusRTU485/port/porttimer.c:60:13:vMBPortTimersEnable	16	static
+../ModbusRTU485/port/porttimer.c:71:13:vMBPortTimersDisable	16	static
+../ModbusRTU485/port/porttimer.c:84:13:prvvTIMERExpiredISR	8	static
+../ModbusRTU485/port/porttimer.c:90:6:vTimer50RTU	16	static

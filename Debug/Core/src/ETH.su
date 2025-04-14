@@ -1,0 +1,2 @@
+../Core/src/ETH.c:12:6:TxData_ETH	16	static
+../Core/src/ETH.c:15:6:ETH_init	4	static
