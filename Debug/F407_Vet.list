@@ -1111,9 +1111,9 @@ int main(void) {
  8000884:	4a0f      	ldr	r2, [pc, #60]	; (80008c4 <main+0x8c>)
  8000886:	f443 4300 	orr.w	r3, r3, #32768	; 0x8000
  800088a:	6193      	str	r3, [r2, #24]
-			timer_elapsed = 0;
+			timer_elapsed = 50;
  800088c:	4b0c      	ldr	r3, [pc, #48]	; (80008c0 <main+0x88>)
- 800088e:	2200      	movs	r2, #0
+ 800088e:	2232      	movs	r2, #50	; 0x32
  8000890:	601a      	str	r2, [r3, #0]
 		}
 		if(tim2_ticks > 1000){

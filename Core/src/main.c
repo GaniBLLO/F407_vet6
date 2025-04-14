@@ -413,7 +413,7 @@ int main(void) {
 			LED_13_OFF;
 			LED_14_OFF;
 			LED_15_OFF;
-			timer_elapsed = 0;
+			timer_elapsed = 50;
 		}
 		if(tim2_ticks > 1000){
 			sleep = 1;
