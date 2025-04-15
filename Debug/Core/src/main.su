@@ -1,5 +1,5 @@
-C:/STM_Proj/F407_vet6/CMSIS/inc/core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
-C:/STM_Proj/F407_vet6/CMSIS/inc/core_cm4.h:1777:22:__NVIC_ClearPendingIRQ	16	static
+/home/ganibllo/STM_/F407_vet6/CMSIS/inc/core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
+/home/ganibllo/STM_/F407_vet6/CMSIS/inc/core_cm4.h:1777:22:__NVIC_ClearPendingIRQ	16	static
 ../Core/src/main.c:78:6:GPIO_RCC_init	4	static
 ../Core/src/main.c:88:6:vTask1	24	static
 ../Core/src/main.c:100:6:vTaskCheckCable	32	static
@@ -12,6 +12,6 @@ C:/STM_Proj/F407_vet6/CMSIS/inc/core_cm4.h:1777:22:__NVIC_ClearPendingIRQ	16	sta
 ../Core/src/main.c:281:6:GPIOe_inp_init	4	static
 ../Core/src/main.c:288:6:EXTI15_10_IRQHandler	8	static
 ../Core/src/main.c:340:6:IRQ_enable	8	static,ignoring_inline_asm
-../Core/src/main.c:369:6:enter_lpm	16	static
-../Core/src/main.c:382:6:exit_lpm	8	static
-../Core/src/main.c:390:5:main	16	static,ignoring_inline_asm
+../Core/src/main.c:373:6:enter_lpm	16	static
+../Core/src/main.c:386:6:exit_lpm	8	static
+../Core/src/main.c:394:5:main	16	static,ignoring_inline_asm

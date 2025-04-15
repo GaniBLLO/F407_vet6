@@ -35,7 +35,13 @@ typedef struct {
 
 extern rtcCalendar myCalendar;
 
+typedef struct _RTC{
+
+}RTC_struct;
+
 void RTC_init(void);
+void RTC_unlock(void);
+void RTC_start(void);
 void RTC_update(rtcCalendar* calendar);
 void RTC_get_time(rtcTime * val);
 void RTC_get_date(rtcDate* val);

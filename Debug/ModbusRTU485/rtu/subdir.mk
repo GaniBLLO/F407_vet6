@@ -18,13 +18,13 @@ C_DEPS += \
 
 
 # Each subdirectory must supply rules for building sources it contributes
-ModbusRTU485/rtu/%.o ModbusRTU485/rtu/%.su: ../ModbusRTU485/rtu/%.c ModbusRTU485/rtu/subdir.mk
-	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g -DDEBUG -DSTM32 -DSTM32F4 -DSTM32F407VETx -c -I"C:/STM_Proj/F407_vet6/Core/inc" -I"C:/STM_Proj/F407_vet6/CMSIS/inc" -I"C:/STM_Proj/F407_vet6/FreeRTOS" -I"C:/STM_Proj/F407_vet6/FreeRTOS/Kernel" -I"C:/STM_Proj/F407_vet6/FreeRTOS/Kernel/include" -I"C:/STM_Proj/F407_vet6/FreeRTOS/Kernel/portable/GCC/ARM_CM4F" -I"C:/STM_Proj/F407_vet6/Applications/W5500_Spi/inc" -I"C:/STM_Proj/F407_vet6/Applications/dp83848/inc" -I"C:/STM_Proj/F407_vet6/ModbusRTU485/ascii" -I"C:/STM_Proj/F407_vet6/ModbusRTU485/functions" -I"C:/STM_Proj/F407_vet6/ModbusRTU485/include" -I"C:/STM_Proj/F407_vet6/ModbusRTU485/port" -I"C:/STM_Proj/F407_vet6/ModbusRTU485/rtu" -I"C:/STM_Proj/F407_vet6/ModbusRTU485/tcp" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
+ModbusRTU485/rtu/%.o ModbusRTU485/rtu/%.su ModbusRTU485/rtu/%.cyclo: ../ModbusRTU485/rtu/%.c ModbusRTU485/rtu/subdir.mk
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g -DDEBUG -DSTM32 -DSTM32F4 -DSTM32F407VETx -c -I"/home/ganibllo/STM_/F407_vet6/Core/inc" -I"/home/ganibllo/STM_/F407_vet6/CMSIS/inc" -I"/home/ganibllo/STM_/F407_vet6/FreeRTOS" -I"/home/ganibllo/STM_/F407_vet6/FreeRTOS/Kernel" -I"/home/ganibllo/STM_/F407_vet6/FreeRTOS/Kernel/include" -I"/home/ganibllo/STM_/F407_vet6/FreeRTOS/Kernel/portable/GCC/ARM_CM4F" -I"/home/ganibllo/STM_/F407_vet6/Applications/W5500_Spi/inc" -I"/home/ganibllo/STM_/F407_vet6/Applications/dp83848/inc" -I"/home/ganibllo/STM_/F407_vet6/ModbusRTU485/ascii" -I"/home/ganibllo/STM_/F407_vet6/ModbusRTU485/functions" -I"/home/ganibllo/STM_/F407_vet6/ModbusRTU485/include" -I"/home/ganibllo/STM_/F407_vet6/ModbusRTU485/port" -I"/home/ganibllo/STM_/F407_vet6/ModbusRTU485/rtu" -I"/home/ganibllo/STM_/F407_vet6/ModbusRTU485/tcp" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
 clean: clean-ModbusRTU485-2f-rtu
 
 clean-ModbusRTU485-2f-rtu:
-	-$(RM) ./ModbusRTU485/rtu/mbcrc.d ./ModbusRTU485/rtu/mbcrc.o ./ModbusRTU485/rtu/mbcrc.su ./ModbusRTU485/rtu/mbrtu.d ./ModbusRTU485/rtu/mbrtu.o ./ModbusRTU485/rtu/mbrtu.su
+	-$(RM) ./ModbusRTU485/rtu/mbcrc.cyclo ./ModbusRTU485/rtu/mbcrc.d ./ModbusRTU485/rtu/mbcrc.o ./ModbusRTU485/rtu/mbcrc.su ./ModbusRTU485/rtu/mbrtu.cyclo ./ModbusRTU485/rtu/mbrtu.d ./ModbusRTU485/rtu/mbrtu.o ./ModbusRTU485/rtu/mbrtu.su
 
 .PHONY: clean-ModbusRTU485-2f-rtu
 

@@ -337,32 +337,36 @@ void EXTI15_10_IRQHandler(void){
 }
 
 
-void IRQ_enable(void){
+void IRQ_enable(void) {
 
-  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-  SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PE;
-  SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI11_PE;
-  SYSCFG->EXTICR[3] |= SYSCFG_EXTICR4_EXTI12_PE;
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+	SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PE;
+	SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI11_PE;
+	SYSCFG->EXTICR[3] |= SYSCFG_EXTICR4_EXTI12_PE;
 
-  __enable_irq();
-  //Enb INTERRUPT! for gpio 10-12
-  EXTI->IMR |= EXTI_IMR_MR10;
-  EXTI->IMR |= EXTI_IMR_MR11;
-  EXTI->IMR |= EXTI_IMR_MR12;
+	__enable_irq();
+	//Enb INTERRUPT! for gpio 10-12
+	EXTI->IMR |= EXTI_IMR_MR10;
+	EXTI->IMR |= EXTI_IMR_MR11;
+	EXTI->IMR |= EXTI_IMR_MR12;
+	//Enb INTERRUPT! for gpio 10-12
+//	EXTI->EMR |= EXTI_EMR_MR10;
+//	EXTI->EMR |= EXTI_EMR_MR11;
+//	EXTI->EMR |= EXTI_EMR_MR12;
 
-  //Falling trigger
-  EXTI->RTSR |= EXTI_RTSR_TR10;
-  EXTI->RTSR |= EXTI_RTSR_TR11;
-  EXTI->RTSR |= EXTI_RTSR_TR12;
+	//Falling trigger
+	EXTI->FTSR |= EXTI_FTSR_TR10;
+	EXTI->FTSR |= EXTI_FTSR_TR11;
+	EXTI->FTSR |= EXTI_FTSR_TR12;
 
-  //
-  EXTI->PR |= EXTI_PR_PR10;
-  EXTI->PR |= EXTI_PR_PR11;
-  EXTI->PR |= EXTI_PR_PR12;
+	//
+	EXTI->PR |= EXTI_PR_PR10;
+	EXTI->PR |= EXTI_PR_PR11;
+	EXTI->PR |= EXTI_PR_PR12;
 
-  //Enb EXTI
+	//Enb EXTI
 
-  NVIC_EnableIRQ(EXTI15_10_IRQn);
+	NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
@@ -398,7 +402,7 @@ int main(void) {
 //    w5500_init();
     GPIOe_out_init();
     GPIOe_inp_init();
-    IRQ_enable();
+//    IRQ_enable();
     timer_init();
     RTC_init();
     /* init code for LWIP */
@@ -409,11 +413,11 @@ int main(void) {
 //	vTaskStartScheduler();
 	while (1){
 		if(timer_elapsed > 100){
-			WFE();
+			__WFE();
 			LED_13_OFF;
 			LED_14_OFF;
 			LED_15_OFF;
-			timer_elapsed = 50;
+			timer_elapsed = 0;
 		}
 		if(tim2_ticks > 1000){
 			sleep = 1;
@@ -421,11 +425,12 @@ int main(void) {
 		}
 		if(sleep){
 			enter_lpm();
-			WFE();
+			RTC_start();
+//			WFE();
 			sleep = 0;
-			exit_lpm();
+//			exit_lpm();
 		}else{
-			WFI();
+			__WFI();
 		}
 	}
 }
