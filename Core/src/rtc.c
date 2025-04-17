@@ -8,33 +8,38 @@ void RTC_init(void) {
 	/* Disable backup domain write protection */
 	SET_BIT(PWR->CR, PWR_CR_DBP);
 
-	/* Enable LSE */
+	/* Enable LSE + inited GPIO PC15/PC14 */
 	SET_BIT(RCC->BDCR, RCC_BDCR_LSEON);
 	while (!(RCC->BDCR & RCC_BDCR_LSERDY)) {
 	};
-
-	/* Select RTC clocking to LSE: RTCSEL = 01*/
+	/* Select RTC clocking to LSE: RTCSEL = 01 или 10?*/
 	SET_BIT(RCC->BDCR, RCC_BDCR_RTCSEL_0);
 	/* Enable RTC */
 	SET_BIT(RCC->BDCR, RCC_BDCR_RTCEN);
 
-//	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-//	SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PE;
-	EXTI->IMR |= EXTI_IMR_MR22;
-	EXTI->EMR |= EXTI_EMR_MR22;
-	EXTI->RTSR |= EXTI_RTSR_TR22;
-	EXTI->PR |= EXTI_PR_PR2;
-	NVIC_EnableIRQ(RTC_WKUP_IRQn);//RTC_Alarm_IRQn
+
 	RTC_unlock();
 	//Disable wake up timer
 	CLEAR_BIT(RTC->CR, RTC_CR_WUTE);
 	__DMB();
-	//
 	while(!(RTC->ISR & RTC_ISR_WUTWF));
-	RTC->WUTR = (2048*5)-1;
-	RTC->CR |= RTC_CR_WUTE;
+	RTC->WUTR = 4;//(2048*5)-1;
+//	SET_BIT(PWR->CSR, PWR_CSR_EWUP);
+	//Wake-up output enabled
+	RTC->CR |= RTC_CR_OSEL;
+	RTC->CR &= ~RTC_CR_POL;
+	RTC->CR |= RTC_CR_WUCKSEL_2;
 	RTC->ISR &= ~RTC_ISR_WUTF;
-	RTC->WPR = 0xb0;
+	RTC_lock();
+
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+//	SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PE;
+	EXTI->IMR |= EXTI_IMR_MR22;
+	EXTI->EMR |= EXTI_EMR_MR22;
+	EXTI->RTSR |= EXTI_RTSR_TR22;
+//	EXTI->PR |= EXTI_PR_PR22;
+	__enable_irq();
+	NVIC_EnableIRQ(RTC_WKUP_IRQn);//RTC_Alarm_IRQn
 	/* Enable backup domain write protection */
 //	CLEAR_BIT(PWR->CR, PWR_CR_DBP);
 
@@ -58,14 +63,20 @@ void RTC_init(void) {
 
 void RTC_start(void){
 	RTC_unlock();
+	//Wake-up interrupt timer ENB | Wake-up timer enable
 	RTC->CR |= (RTC_CR_WUTIE | RTC_CR_WUTE);
-	while(((RTC->ISR) & RTC_ISR_WUTWF));
-	RTC->WPR = 0xb0;
+	while(!(READ_BIT(RTC->ISR, RTC_ISR_WUTF)));
+	RTC_lock();
 }
 void RTC_unlock(void) {
 	/* Disable write protection */
 	WRITE_REG(RTC->WPR, 0xCA);
 	WRITE_REG(RTC->WPR, 0x53);
+}
+
+void RTC_lock(void) {
+	/* Disable write protection */
+	WRITE_REG(RTC->WPR, 0xb0);
 }
 
 void RTC_update(rtcCalendar* calendar) {

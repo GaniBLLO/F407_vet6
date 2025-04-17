@@ -5,3 +5,6 @@
 *.cyclo
 *.elf
 *.list
+*.map
+*.su
+

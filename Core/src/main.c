@@ -74,7 +74,8 @@ void w5500_init(void);
 void GPIOe_out_init();
 void SPI_init(void);
 void RTC_init(void);
-
+void RTC_lock(void);
+void RTC_unlock(void);
 void GPIO_RCC_init(void){
 
   /*Тактирование порта на шине AHB1 */
@@ -285,6 +286,24 @@ void GPIOe_inp_init(void){
   GPIOE->MODER &= ~GPIO_MODER_MODER12;
 }
 
+
+void RTC_WKUP_IRQHandler(void)
+{
+	LED_13_ON;
+	LED_14_ON;
+	LED_15_ON;
+	RTC_unlock();
+    NVIC_ClearPendingIRQ(RTC_WKUP_IRQn);
+    NVIC_DisableIRQ(RTC_WKUP_IRQn);
+    RTC->ISR &= ~RTC_ISR_WUTF;
+    RTC->CR &= ~(RTC_CR_WUTIE | RTC_CR_WUTE);
+    RTC_lock();
+    EXTI->PR |= EXTI_PR_PR22;
+
+    tim2_ticks = 0;
+    timer_elapsed = 0;
+}
+
 void EXTI15_10_IRQHandler(void){
 	RTC_update(&myCalendar);
 	//S1 button
@@ -370,20 +389,35 @@ void IRQ_enable(void) {
 
 }
 
-void enter_lpm(void){
-	uint32_t scr = 0;
+/*Sleep mode (Cortex®-M4 with FPU core stopped, peripherals kept running)*/
+void enter_sleep_mode(void){
 	LED_13_OFF;
 	LED_14_OFF;
 	LED_15_OFF;
-	scr = SCB->SCR;
-	scr &= ~SCB_SCR_SEVONPEND_Msk;
-	scr |= SCB_SCR_SLEEPDEEP_Msk;
-	scr &= ~SCB_SCR_SLEEPONEXIT_Msk;
-	SCB->SCR = scr;
-	PWR->CR |= (PWR_CR_CWUF | PWR_CR_FPDS | PWR_CR_LPDS);
+//	SCB->SCR
+}
+void exit_sleep_mode(void){
+	;
+}
+/*Stop mode (all clocks are stopped)*/
+void enter_stop_mode(void){
+//	uint32_t scr = 0;
+	LED_13_OFF;
+	LED_14_OFF;
+	LED_15_OFF;
+//	scr = SCB->SCR;
+	//Only event or interrup can wake up processor
+	SCB->SCR &= ~SCB_SCR_SEVONPEND_Msk;
+	//[0] - slep; [1] - deep sleep <-
+	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+	//
+	SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
+//	SCB->SCR = scr;
+	PWR->CR |= (PWR_CR_CWUF | PWR_CR_FPDS | PWR_CR_PDDS);
+	PWR->CR |= PWR_CR_CSBF;
 }
 
-void exit_lpm(void){
+void exit_stop_mode(void){
 	SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
 	PWR->CR |= (PWR_CR_CWUF | PWR_CR_CSBF);
 	system_clock_168m_25m_hse();
@@ -413,10 +447,10 @@ int main(void) {
 //	vTaskStartScheduler();
 	while (1){
 		if(timer_elapsed > 100){
-			__WFE();
-			LED_13_OFF;
+			__WFI();
+			LED_13_ON;
 			LED_14_OFF;
-			LED_15_OFF;
+			LED_15_ON;
 			timer_elapsed = 0;
 		}
 		if(tim2_ticks > 1000){
@@ -424,9 +458,9 @@ int main(void) {
 			tim2_ticks = 0;
 		}
 		if(sleep){
-			enter_lpm();
+			enter_stop_mode();
 			RTC_start();
-//			WFE();
+			__WFE();
 			sleep = 0;
 //			exit_lpm();
 		}else{

@@ -11,8 +11,8 @@
 #include "stdint.h"
 #include "stm32f4xx.h"
 
-#define WFI() asm volatile ("wfi");
-#define WFE() asm volatile ("wfe");
+#define WFI() __ASM volatile ("wfi");
+#define WFE() __ASM volatile ("wfe");
 
 typedef struct {
   uint8_t hour;
@@ -41,6 +41,7 @@ typedef struct _RTC{
 
 void RTC_init(void);
 void RTC_unlock(void);
+void RTC_lock(void);
 void RTC_start(void);
 void RTC_update(rtcCalendar* calendar);
 void RTC_get_time(rtcTime * val);
