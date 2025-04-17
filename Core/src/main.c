@@ -76,6 +76,8 @@ void SPI_init(void);
 void RTC_init(void);
 void RTC_lock(void);
 void RTC_unlock(void);
+
+
 void GPIO_RCC_init(void){
 
   /*Тактирование порта на шине AHB1 */
@@ -217,47 +219,47 @@ eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete )
 
 void TIM6_DAC_IRQHandler(void){
   if(TIM6->SR & TIM_SR_UIF){
-    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_10) == 0){
-      if(s1_cnt < DEBOUNCE_CNT_BTN){
-        s1_cnt++;
-        s1_state = 0;
-      }else{
-        s1_state = 1;
-        s1_cnt = 0;
-        EXTI->SWIER |= EXTI_SWIER_SWIER10;
-      }
-    }else{
-      s1_state = 0;
-      s1_cnt = 0;
-    }
-
-    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_11) == 0){
-      if(s2_cnt < DEBOUNCE_CNT_BTN){
-        s2_cnt++;
-        s2_state = 0;
-      }else{
-        s2_state = 1;
-        s2_cnt = 0;
-        EXTI->SWIER |= EXTI_SWIER_SWIER11;
-      }
-    }else{
-      s2_state = 0;
-      s2_cnt = 0;
-    }
-
-    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_12) == 0){
-      if(s3_cnt < DEBOUNCE_CNT_BTN){
-        s3_cnt++;
-        s3_state = 0;
-      }else{
-        s3_state = 1;
-        s3_cnt = 0;
-        EXTI->SWIER |= EXTI_SWIER_SWIER12;
-      }
-    }else{
-      s3_state = 0;
-      s3_cnt = 0;
-    }
+//    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_10) == 0){
+//      if(s1_cnt < DEBOUNCE_CNT_BTN){
+//        s1_cnt++;
+//        s1_state = 0;
+//      }else{
+//        s1_state = 1;
+//        s1_cnt = 0;
+//        EXTI->SWIER |= EXTI_SWIER_SWIER10;
+//      }
+//    }else{
+//      s1_state = 0;
+//      s1_cnt = 0;
+//    }
+//
+//    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_11) == 0){
+//      if(s2_cnt < DEBOUNCE_CNT_BTN){
+//        s2_cnt++;
+//        s2_state = 0;
+//      }else{
+//        s2_state = 1;
+//        s2_cnt = 0;
+//        EXTI->SWIER |= EXTI_SWIER_SWIER11;
+//      }
+//    }else{
+//      s2_state = 0;
+//      s2_cnt = 0;
+//    }
+//
+//    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_12) == 0){
+//      if(s3_cnt < DEBOUNCE_CNT_BTN){
+//        s3_cnt++;
+//        s3_state = 0;
+//      }else{
+//        s3_state = 1;
+//        s3_cnt = 0;
+//        EXTI->SWIER |= EXTI_SWIER_SWIER12;
+//      }
+//    }else{
+//      s3_state = 0;
+//      s3_cnt = 0;
+//    }
     tim2_ticks++;
     timer_elapsed++;
     NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);
@@ -270,8 +272,9 @@ void timer_init(void){
 
   TIM6->CR1 &= ~TIM_CR1_CEN;
   //10 ms = 100Hz
-  TIM6->PSC = 7;
-  TIM6->ARR = 59999;
+  //1s = 1Hz
+  TIM6->PSC = 2687;//7;
+  TIM6->ARR = 62499;//59999;
 
   TIM6->DIER |= TIM_DIER_UIE;
 
@@ -302,6 +305,13 @@ void RTC_WKUP_IRQHandler(void)
 
     tim2_ticks = 0;
     timer_elapsed = 0;
+}
+
+void toggle_led(void) {
+	if (CHECK_OUTPUT_E(LED_1))
+		LED_13_ON;
+	else
+		LED_13_OFF;
 }
 
 void EXTI15_10_IRQHandler(void){
@@ -438,7 +448,7 @@ int main(void) {
     GPIOe_inp_init();
 //    IRQ_enable();
     timer_init();
-    RTC_init();
+//    RTC_init();
     /* init code for LWIP */
 //    _LWIP_Init();
 //    my_sem = xSemaphoreCreateMutex();
@@ -446,14 +456,12 @@ int main(void) {
 //
 //	vTaskStartScheduler();
 	while (1){
-		if(timer_elapsed > 100){
+		if(timer_elapsed){
 			__WFI();
-			LED_13_ON;
-			LED_14_OFF;
-			LED_15_ON;
+			toggle_led();
 			timer_elapsed = 0;
 		}
-		if(tim2_ticks > 1000){
+		if(tim2_ticks > 100){
 			sleep = 1;
 			tim2_ticks = 0;
 		}
