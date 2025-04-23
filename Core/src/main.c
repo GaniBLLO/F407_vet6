@@ -42,6 +42,8 @@ static USHORT   usRegInputBuf[REG_INPUT_NREGS];
 SemaphoreHandle_t my_sem;
 /************************************************************************VARs*****/
 
+uint32_t srvar = 0;
+uint32_t srvar1 = 0;
 uint8_t s1_state = 0;
 uint32_t s1_cnt = 0;
 
@@ -498,6 +500,14 @@ void enter_stop_mode(void){
 	RTC_lock();
 #endif
 	printf("Enter in Stop mode\r\n");
+
+	//write into SRAM backup register
+	RTC_unlock();
+	SET_BIT(PWR->CR, PWR_CR_DBP);
+	srvar = (uint32_t)0x696D & (RTC_BKP1R);
+	RTC->BKP1R = srvar;
+	RTC_lock();
+	for(int i = 0; i < 1000000; ++i);
 	__WFI();
 }
 
@@ -510,7 +520,11 @@ void exit_stop_mode(void){
     timer_init();
 	LED_14_ON;
 	printf("Exit from Stop mode\r\n");
+	for(int i = 0; i < 1000000; ++i);
+	srvar1 = RTC->BKP1R;
+	printf("Var in SRAM is %u: ", srvar1);
 }
+
 /************************************************************************MAIN*/
 int main(void) {
 	int sleep = 0;
