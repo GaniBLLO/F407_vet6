@@ -40,6 +40,7 @@ typedef struct _RTC{
 }RTC_struct;
 
 void RTC_init(void);
+void RTC_SB_mode(void);
 void RTC_unlock(void);
 void RTC_lock(void);
 void RTC_start(void);

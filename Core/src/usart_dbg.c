@@ -1,6 +1,6 @@
 #include "stm32f4xx.h"
 
-void usart1_init(void) {
+void debug_usart_init(void) {
   /* Using USART1 on PA9, PA10, tx only in polling mode (no interrupts) */
 
   /* Enable PORT E clock */
@@ -19,16 +19,19 @@ void usart1_init(void) {
 
   // Tx enable
   SET_BIT(USART1->CR1, USART_CR1_TE);
+//  SET_BIT(USART1->CR1, USART_CR1_TCIE);
   // 8 bit, no parity, 1 stop
   CLEAR_BIT(USART1->CR1, USART_CR1_M | USART_CR1_PCE);
-  CLEAR_BIT(USART1->CR2, USART_CR2_STOP_0 | USART_CR2_STOP_0);
+  CLEAR_BIT(USART1->CR2, USART_CR2_STOP);
+
+  //Enb interrupt & USART
+  NVIC_EnableIRQ(USART1_IRQn);
   // enable USART
-  
   SET_BIT(USART1->CR1, USART_CR1_UE);
 }
 
 
-void usart2_init(void) {
+void RS_485_init(void) {
 
   /* Enable PORT E clock */
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIODEN);
@@ -69,23 +72,25 @@ void USARTx_send_data(char *buffer){
   }
 }
 
-//void cmdGetId(uint8_t *getdata){
-//
-//}
-//
-//
-//void USART1_IRQHandler(void){
-//	char buffer[10] = "0";
-//
-//	if (READ_BIT(USART1->SR, USART_SR_RXNE)) {
-//		//Получаем данные с регистра и вносим их в пер
-//		uint16_t data = (uint16_t) (USART1->DR & (uint16_t) 0x01FF);
-//		//копируем полученные данные в буфер
-//		//sprintf(buffer, "%d", data);
-//		////Определяем размерность массива
-//		//size_t buff_len = strlen(buffer);
-//	}
-//
-//	NVIC_ClearPendingIRQ(USART1_IRQn);
-//}
+
+char USARTx_receive_data(void){
+  char c;
+  do{;
+  }while(!(READ_BIT(USART1->SR, USART_SR_RXNE)));
+    c = (char)(USART1->DR & (uint16_t)0x01FF);
+    return c;
+}
+
+
+int _write(void *r, uint8_t *text, int len){
+	char *p = (char*)text;
+	text[len - 1] = 0;
+	while(*p){
+		do{;
+		}while(!(READ_BIT(USART1->SR, USART_SR_TXE)));
+		USART1->DR = *p;
+		p++;
+	}
+	return len;
+}
 

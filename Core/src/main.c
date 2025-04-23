@@ -16,7 +16,7 @@
 #define LED_15_ON  GPIOE->BSRR |= GPIO_BSRR_BR15
 #define LED_15_OFF GPIOE->BSRR |= GPIO_BSRR_BS15
 
-#define DEBOUNCE_CNT_BTN  17
+#define DEBOUNCE_CNT_BTN  1
 #define REG_HOLDING_START           0x1000
 #define REG_HOLDING_NREGS           130
 #define REG_INPUT_START             0x1000
@@ -30,6 +30,8 @@
 #define CHECK_OUTPUT_B(LD)  (GPIOB->ODR & LD)
 #define CHECK_INPUT(LD)     (GPIOB->IDR & LD)
 
+#define WKUP_PIN_ENB		0
+#define WAKE_UP_RTC			0
 /* ----------------------- Static variables ---------------------------------*/
 
 static USHORT   usRegHoldingStart = REG_HOLDING_START;
@@ -68,14 +70,18 @@ wiz_NetInfo my_struct_w5500 = { .mac = {0x00, 0x08, 0xdc,0x00, 0xab, 0xcd}, //<-
 /************************************************************************Functions*/
 int8_t wizchip_init(uint8_t* txsize, uint8_t* rxsize);
 void system_clock_168m_25m_hse(void);
+void RTC_DateTime_init(void);
 void wizchip_sw_reset(void);
-void usart2_init(void);
+void debug_usart_init(void);
+void GPIOe_out_init(void);
+void RS_485_init(void);
+void RTC_SB_mode(void);
 void w5500_init(void);
-void GPIOe_out_init();
+void RTC_unlock(void);
 void SPI_init(void);
 void RTC_init(void);
 void RTC_lock(void);
-void RTC_unlock(void);
+
 
 
 void GPIO_RCC_init(void){
@@ -219,51 +225,55 @@ eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNDiscrete )
 
 void TIM6_DAC_IRQHandler(void){
   if(TIM6->SR & TIM_SR_UIF){
-//    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_10) == 0){
-//      if(s1_cnt < DEBOUNCE_CNT_BTN){
-//        s1_cnt++;
-//        s1_state = 0;
-//      }else{
-//        s1_state = 1;
-//        s1_cnt = 0;
-//        EXTI->SWIER |= EXTI_SWIER_SWIER10;
-//      }
-//    }else{
-//      s1_state = 0;
-//      s1_cnt = 0;
-//    }
-//
-//    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_11) == 0){
-//      if(s2_cnt < DEBOUNCE_CNT_BTN){
-//        s2_cnt++;
-//        s2_state = 0;
-//      }else{
-//        s2_state = 1;
-//        s2_cnt = 0;
-//        EXTI->SWIER |= EXTI_SWIER_SWIER11;
-//      }
-//    }else{
-//      s2_state = 0;
-//      s2_cnt = 0;
-//    }
-//
-//    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_12) == 0){
-//      if(s3_cnt < DEBOUNCE_CNT_BTN){
-//        s3_cnt++;
-//        s3_state = 0;
-//      }else{
-//        s3_state = 1;
-//        s3_cnt = 0;
-//        EXTI->SWIER |= EXTI_SWIER_SWIER12;
-//      }
-//    }else{
-//      s3_state = 0;
-//      s3_cnt = 0;
-//    }
+    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_10) == 0){
+      if(s1_cnt < DEBOUNCE_CNT_BTN){
+        s1_cnt++;
+        s1_state = 0;
+      }else{
+        s1_state = 1;
+        s1_cnt = 0;
+        EXTI->SWIER |= EXTI_SWIER_SWIER10;
+      }
+    }else{
+      s1_state = 0;
+      s1_cnt = 0;
+    }
+
+    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_11) == 0){
+      if(s2_cnt < DEBOUNCE_CNT_BTN){
+        s2_cnt++;
+        s2_state = 0;
+      }else{
+        s2_state = 1;
+        s2_cnt = 0;
+        EXTI->SWIER |= EXTI_SWIER_SWIER11;
+      }
+    }else{
+      s2_state = 0;
+      s2_cnt = 0;
+    }
+
+    if(READ_BIT(GPIOE->IDR, GPIO_IDR_IDR_12) == 0){
+      if(s3_cnt < DEBOUNCE_CNT_BTN){
+        s3_cnt++;
+        s3_state = 0;
+      }else{
+        s3_state = 1;
+        s3_cnt = 0;
+        EXTI->SWIER |= EXTI_SWIER_SWIER12;
+      }
+    }else{
+      s3_state = 0;
+      s3_cnt = 0;
+    }
     tim2_ticks++;
     timer_elapsed++;
     NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);
+
     TIM6->SR &= ~TIM_SR_UIF;
+    RTC_get_time(&myCalendar.time_val);
+//    printf("\r\nHello! The time is %u:%u:%u!",
+//    		myCalendar.time_val.hour, myCalendar.time_val.minute, myCalendar.time_val.second);
   }
 }
 
@@ -273,7 +283,7 @@ void timer_init(void){
   TIM6->CR1 &= ~TIM_CR1_CEN;
   //10 ms = 100Hz
   //1s = 1Hz
-  TIM6->PSC = 2687;//7;
+  TIM6->PSC = 1343;//7;
   TIM6->ARR = 62499;//59999;
 
   TIM6->DIER |= TIM_DIER_UIE;
@@ -283,28 +293,10 @@ void timer_init(void){
 }
 
 void GPIOe_inp_init(void){
-  //GPIOx(E) Input mode |0|0|
-  GPIOE->MODER &= ~GPIO_MODER_MODER10;
-  GPIOE->MODER &= ~GPIO_MODER_MODER11;
-  GPIOE->MODER &= ~GPIO_MODER_MODER12;
-}
-
-
-void RTC_WKUP_IRQHandler(void)
-{
-	LED_13_ON;
-	LED_14_ON;
-	LED_15_ON;
-	RTC_unlock();
-    NVIC_ClearPendingIRQ(RTC_WKUP_IRQn);
-    NVIC_DisableIRQ(RTC_WKUP_IRQn);
-    RTC->ISR &= ~RTC_ISR_WUTF;
-    RTC->CR &= ~(RTC_CR_WUTIE | RTC_CR_WUTE);
-    RTC_lock();
-    EXTI->PR |= EXTI_PR_PR22;
-
-    tim2_ticks = 0;
-    timer_elapsed = 0;
+	//GPIOx(E) Input mode |0|0|
+	GPIOE->MODER &= ~GPIO_MODER_MODER10;
+	GPIOE->MODER &= ~GPIO_MODER_MODER11;
+	GPIOE->MODER &= ~GPIO_MODER_MODER12;
 }
 
 void toggle_led(void) {
@@ -314,7 +306,9 @@ void toggle_led(void) {
 		LED_13_OFF;
 }
 
+
 void EXTI15_10_IRQHandler(void){
+
 	RTC_update(&myCalendar);
 	//S1 button
 	if (s1_state) {
@@ -374,14 +368,14 @@ void IRQ_enable(void) {
 	SYSCFG->EXTICR[3] |= SYSCFG_EXTICR4_EXTI12_PE;
 
 	__enable_irq();
-	//Enb INTERRUPT! for gpio 10-12
+//	Enb INTERRUPT! for gpio 10-12
 	EXTI->IMR |= EXTI_IMR_MR10;
 	EXTI->IMR |= EXTI_IMR_MR11;
 	EXTI->IMR |= EXTI_IMR_MR12;
 	//Enb INTERRUPT! for gpio 10-12
-//	EXTI->EMR |= EXTI_EMR_MR10;
-//	EXTI->EMR |= EXTI_EMR_MR11;
-//	EXTI->EMR |= EXTI_EMR_MR12;
+	EXTI->EMR |= EXTI_EMR_MR10;
+	EXTI->EMR |= EXTI_EMR_MR11;
+	EXTI->EMR |= EXTI_EMR_MR12;
 
 	//Falling trigger
 	EXTI->FTSR |= EXTI_FTSR_TR10;
@@ -393,29 +387,65 @@ void IRQ_enable(void) {
 	EXTI->PR |= EXTI_PR_PR11;
 	EXTI->PR |= EXTI_PR_PR12;
 
-	//Enb EXTI
+//	Enb EXTI
 
 	NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
+/*Standby mode (Cortex®-M4 with FPU core stopped, peripherals kept running)*/
+void enter_standby_mode(void){
+
+	RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+	//[0] - slep; [1] - deep sleep <-
+	SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+	//Only event or interrup can wake up processor
+	SCB->SCR &= ~SCB_SCR_SEVONPEND_Msk;
+	//if my code is empty and programm work in interrupt
+	SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
+	//Clear the SBF Standby Flag (write).
+	PWR->CR |= PWR_CR_CSBF;
+	//Enter Standby mode when the CPU enters deepsleep.
+	PWR->CR |= PWR_CR_PDDS;
+	//Clear the WUF Wakeup Flag after 2 System clock cycles
+	PWR->CR |= PWR_CR_CWUF;
+
+//WKUP pin (PA0)
+#if WKUP_PIN_ENB
+	PWR->CSR |= PWR_CSR_EWUP;//only this??!
+//	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+//	SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA;
+//	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+//	//GPIOx(A) Input mode |0|0|
+//	GPIOA->MODER &= ~GPIO_MODER_MODER0;
+//	//	Enb INTERRUPT! for gpio 0
+//	EXTI->IMR |= EXTI_IMR_MR22;
+//	//Enb INTERRUPT! for gpio 0
+//	EXTI->EMR |= EXTI_EMR_MR22;
+//	//Falling trigger
+//	EXTI->FTSR |= EXTI_FTSR_TR22;
+//	EXTI->PR |= EXTI_PR_PR0;
+#else
+	PWR->CSR &= PWR_CSR_EWUP;
+#endif
+
+#if WAKE_UP_RTC
+	//Enb RTC wake up in Standby mode
+	RTC_SB_mode();
+	RTC_unlock();
+	CLEAR_BIT(RTC->CR, RTC_CR_WUTE);
+	while(!(READ_BIT(RTC->ISR, RTC_ISR_WUTWF)));
+	RTC->ISR &= ~RTC_ISR_WUTF;
+	RTC->CR |= (RTC_CR_WUTIE | RTC_CR_WUTE);
+	RTC_lock();
+#endif
+	__WFI();
+}
+
+
 /*Sleep mode (Cortex®-M4 with FPU core stopped, peripherals kept running)*/
 void enter_sleep_mode(void){
-	LED_13_OFF;
-	LED_14_OFF;
-	LED_15_OFF;
-//	SCB->SCR
-}
-void exit_sleep_mode(void){
-	;
-}
-/*Stop mode (all clocks are stopped)*/
-void enter_stop_mode(void){
-//	uint32_t scr = 0;
-	LED_13_OFF;
-	LED_14_OFF;
-	LED_15_OFF;
-//	scr = SCB->SCR;
 	//Only event or interrup can wake up processor
 	SCB->SCR &= ~SCB_SCR_SEVONPEND_Msk;
 	//[0] - slep; [1] - deep sleep <-
@@ -423,56 +453,107 @@ void enter_stop_mode(void){
 	//
 	SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
 //	SCB->SCR = scr;
-	PWR->CR |= (PWR_CR_CWUF | PWR_CR_FPDS | PWR_CR_PDDS);
-	PWR->CR |= PWR_CR_CSBF;
+	PWR->CR |= (PWR_CR_CWUF | PWR_CR_FPDS | PWR_CR_LPDS);
+}
+
+void exit_sleep_mode(void){
+}
+
+/*Stop mode (all clocks are stopped)*/
+void enter_stop_mode(void){
+	LED_15_OFF;
+	//Only event or interrup can wake up processor
+	SCB->SCR &= ~SCB_SCR_SEVONPEND_Msk;
+	//[0] - slep; [1] - deep sleep <-
+	SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+	SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+	//if my code is empty and programm work in interrupt
+	SCB->SCR &= ~SCB_SCR_SLEEPONEXIT_Msk;
+
+	PWR->CR |= (PWR_CR_CWUF | PWR_CR_LPDS);
+	//Enter Standby mode when the CPU enters deepsleep.
+	PWR->CR &= ~PWR_CR_PDDS;
+//	PWR->CR &= ~PWR_CR_LPDS;
+	//Not disbale flash
+	PWR->CR &= ~PWR_CR_FPDS;
+
+	LED_13_OFF;
+	LED_14_OFF;
+	LED_15_OFF;
+
+	EXTI->PR |= EXTI_PR_PR10;
+	EXTI->PR |= EXTI_PR_PR11;
+	EXTI->PR |= EXTI_PR_PR12;
+	NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
+    NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);
+
+#if WAKE_UP_RTC
+	//Enb RTC wake up in Standby mode
+	RTC_SB_mode();
+	RTC_unlock();
+	CLEAR_BIT(RTC->CR, RTC_CR_WUTE);
+	while(!(READ_BIT(RTC->ISR, RTC_ISR_WUTWF)));
+	RTC->ISR &= ~RTC_ISR_WUTF;
+	RTC->CR |= (RTC_CR_WUTIE | RTC_CR_WUTE);
+	RTC_lock();
+#endif
+	printf("Enter in Stop mode\r\n");
+	__WFI();
 }
 
 void exit_stop_mode(void){
+
 	SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
 	PWR->CR |= (PWR_CR_CWUF | PWR_CR_CSBF);
 	system_clock_168m_25m_hse();
 	GPIO_RCC_init();
-	LED_15_ON;
+    timer_init();
+	LED_14_ON;
+	printf("Exit from Stop mode\r\n");
 }
 /************************************************************************MAIN*/
 int main(void) {
 	int sleep = 0;
     system_clock_168m_25m_hse();
     GPIO_RCC_init();
-//    setbuf(stdout, NULL);
-//    SPI_init();
-//    usart1_init();
-//    usart2_init();
-//    w5500_init();
+
+    debug_usart_init();
     GPIOe_out_init();
     GPIOe_inp_init();
-//    IRQ_enable();
+    IRQ_enable();
     timer_init();
-//    RTC_init();
-    /* init code for LWIP */
-//    _LWIP_Init();
-//    my_sem = xSemaphoreCreateMutex();
-//    xTaskCreate(vTaskCheckCable, "vTaskCheckCable", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-//
-//	vTaskStartScheduler();
+    RTC_DateTime_init();
+
+    if (((PWR->CSR)&(PWR_CSR_SBF))){
+
+    	RTC_get_time(&myCalendar.time_val);
+    	RTC_get_date(&myCalendar.date_val);
+    	RTC_update(&myCalendar);
+    	printf("Awake in %02u:%02u:%02u %02u.%02u.%02u!\r\n",
+    			myCalendar.time_val.hour, myCalendar.time_val.minute, myCalendar.time_val.second,
+				myCalendar.date_val.day, myCalendar.date_val.month, myCalendar.date_val.year);
+
+    	//Clear the WUF Wake-up Flag after 2 System clock cycles
+    	PWR->CR |= PWR_CR_CWUF;
+    	//Clear the SBF Standby Flag (write).
+    	PWR->CR |= PWR_CR_CSBF;
+    	LED_14_ON;
+    }
+
 	while (1){
+		LED_15_ON;
 		if(timer_elapsed){
-			__WFI();
 			toggle_led();
 			timer_elapsed = 0;
 		}
-		if(tim2_ticks > 100){
+		if(tim2_ticks > 10){
 			sleep = 1;
 			tim2_ticks = 0;
 		}
 		if(sleep){
 			enter_stop_mode();
-			RTC_start();
-			__WFE();
 			sleep = 0;
-//			exit_lpm();
-		}else{
-			__WFI();
+			exit_stop_mode();
 		}
 	}
 }

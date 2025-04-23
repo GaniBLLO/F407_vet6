@@ -1,8 +1,37 @@
 #include "rtc.h"
 
 rtcCalendar myCalendar;
+
+void RTC_SB_mode(void){
+
+	/* Disable backup domain write protection */
+	SET_BIT(PWR->CR, PWR_CR_DBP);
+	/* Enable LSE + inited GPIO PC15/PC14 */
+	SET_BIT(RCC->BDCR, RCC_BDCR_LSEON);
+	while (!(RCC->BDCR & RCC_BDCR_LSERDY)) {
+	};
+	/* Select RTC clocking to LSE: RTCSEL = 01 или 10?*/
+	SET_BIT(RCC->BDCR, RCC_BDCR_RTCSEL_0);
+	/* Enable RTC */
+	SET_BIT(RCC->BDCR, RCC_BDCR_RTCEN);
+
+	RTC_unlock();
+	CLEAR_BIT(RTC->CR, RTC_CR_WUTE);
+	__DMB();
+	while(!(RTC->ISR & RTC_ISR_WUTWF));
+	RTC->CR &= ~RTC_CR_WUCKSEL;
+	// 100 = 1 Hz
+	RTC->CR |= RTC_CR_WUCKSEL_2;
+	RTC->CR |= RTC_CR_OSEL;
+	RTC->WUTR = 3;
+	RTC_lock();
+
+}
+
+
+
 /* Initialization of RTC for LSE = 32.768 kHz */
-void RTC_init(void) {
+void RTC_DateTime_init(void) {
 	/* Enable PWR module clocking */
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
 	/* Disable backup domain write protection */
@@ -17,48 +46,25 @@ void RTC_init(void) {
 	/* Enable RTC */
 	SET_BIT(RCC->BDCR, RCC_BDCR_RTCEN);
 
-
-	RTC_unlock();
-	//Disable wake up timer
-	CLEAR_BIT(RTC->CR, RTC_CR_WUTE);
-	__DMB();
-	while(!(RTC->ISR & RTC_ISR_WUTWF));
-	RTC->WUTR = 4;//(2048*5)-1;
-//	SET_BIT(PWR->CSR, PWR_CSR_EWUP);
-	//Wake-up output enabled
-	RTC->CR |= RTC_CR_OSEL;
-	RTC->CR &= ~RTC_CR_POL;
-	RTC->CR |= RTC_CR_WUCKSEL_2;
-	RTC->ISR &= ~RTC_ISR_WUTF;
-	RTC_lock();
-
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-//	SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PE;
-	EXTI->IMR |= EXTI_IMR_MR22;
-	EXTI->EMR |= EXTI_EMR_MR22;
-	EXTI->RTSR |= EXTI_RTSR_TR22;
-//	EXTI->PR |= EXTI_PR_PR22;
-	__enable_irq();
-	NVIC_EnableIRQ(RTC_WKUP_IRQn);//RTC_Alarm_IRQn
 	/* Enable backup domain write protection */
-//	CLEAR_BIT(PWR->CR, PWR_CR_DBP);
+	CLEAR_BIT(PWR->CR, PWR_CR_DBP);
 
 	/* Check if calendar is not initialized */
-//	if (READ_BIT(RTC->ISR, RTC_ISR_INITS) != RTC_ISR_INITS) {
-//		/* Init RTC calendar */
-//
-//		myCalendar.date_val.day = 13;
-//		myCalendar.date_val.month = 04;
-//		myCalendar.date_val.year = 25;
-//		myCalendar.weekday = 2;
-//
-//		myCalendar.time_val.hour = 21;
-//		myCalendar.time_val.minute = 30;
-//		myCalendar.time_val.second = 0;
-//		myCalendar.time_format_12h = 0;
-//
-//		RTC_update(&myCalendar);
-//	}
+	if (READ_BIT(RTC->ISR, RTC_ISR_INITS) != RTC_ISR_INITS) {
+		/* Init RTC calendar */
+
+		myCalendar.date_val.day = 21;
+		myCalendar.date_val.month = 4;
+		myCalendar.date_val.year = 25;
+		myCalendar.weekday = 4;
+
+		myCalendar.time_val.hour = 22;
+		myCalendar.time_val.minute = 34;
+		myCalendar.time_val.second = 0;
+		myCalendar.time_format_12h = 0;
+
+		RTC_update(&myCalendar);
+	}
 }
 
 void RTC_start(void){
